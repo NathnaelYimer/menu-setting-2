@@ -149,6 +149,9 @@ body::before {
   padding: var(--space-5) var(--space-6);
   margin-bottom: var(--space-5);
   backdrop-filter: blur(10px);
+  background-color: var(--space-6);
+  margin-bottom: var(--space-5);
+  backdrop-filter: blur(10px);
   background-color: var(--bg-glass);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
@@ -293,13 +296,6 @@ body::before {
   border-radius: var(--radius-full);
 }
 
-.menu-title-section h1 span {
-  background: linear-gradient(to right, var(--platinum-color), #64b5f6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-left: var(--space-2);
-}
-
 .menu-title-section p {
   margin: var(--space-3) 0 0;
   font-size: 13px;
@@ -355,14 +351,6 @@ body::before {
   background: linear-gradient(to right, #1a365d, #2c5282);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  position: relative;
-  z-index: 1;
-}
-
-.base-payment-monthly {
-  font-size: 13px;
-  color: var(--text-dark-soft);
-  margin-top: var(--space-1);
   position: relative;
   z-index: 1;
 }
@@ -605,17 +593,22 @@ body::before {
   opacity: 0.9;
 }
 
+/* Removed .price-monthly styling as these elements have been removed from the HTML */
+/* 
 .price-monthly {
   font-size: 15px;
   margin: var(--space-3) 0;
   color: var(--text-light-soft);
   font-weight: 500;
 }
+*/
 
+/* Adjust spacing for price-term to compensate for removed element */
 .price-term {
   font-size: 13px;
   color: var(--text-muted);
   font-style: italic;
+  margin-top: var(--space-3);
 }
 
 /* Premium feature list with enhanced scrolling and animations */
@@ -1214,8 +1207,12 @@ body::before {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .settings-section {
@@ -1248,6 +1245,7 @@ body::before {
   font-size: 14px;
 }
 
+/* Enhanced column name inputs */
 .column-name-input {
   width: 100%;
   padding: var(--space-3) var(--space-4);
@@ -1263,11 +1261,35 @@ body::before {
   outline: none;
   border-color: var(--platinum-color);
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Add color indicators for column name inputs */
+#platinum-name {
+  border-left: 4px solid var(--platinum-color);
+}
+
+#gold-name {
+  border-left: 4px solid var(--gold-color);
+}
+
+#silver-name {
+  border-left: 4px solid var(--silver-color);
+}
+
+#bronze-name {
+  border-left: 4px solid var(--bronze-color);
+}
+
+#iron-name {
+  border-left: 4px solid var(--iron-color);
 }
 
 .product-assignment-table {
   overflow-x: auto;
   margin-top: var(--space-4);
+  border-radius: var(--radius-md);
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
 .product-assignment-table table {
@@ -1287,10 +1309,38 @@ body::before {
   font-weight: 600;
   color: var(--text-light);
   background-color: rgba(255, 255, 255, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* Column header colors */
+.product-assignment-table th:nth-child(2) {
+  border-bottom: 2px solid var(--platinum-color);
+}
+
+.product-assignment-table th:nth-child(3) {
+  border-bottom: 2px solid var(--gold-color);
+}
+
+.product-assignment-table th:nth-child(4) {
+  border-bottom: 2px solid var(--silver-color);
+}
+
+.product-assignment-table th:nth-child(5) {
+  border-bottom: 2px solid var(--bronze-color);
+}
+
+.product-assignment-table th:nth-child(6) {
+  border-bottom: 2px solid var(--iron-color);
 }
 
 .product-assignment-table td {
   color: var(--text-light-soft);
+}
+
+.product-assignment-table tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .product-assignment-table th:first-child,
@@ -1303,6 +1353,44 @@ body::before {
   padding-right: var(--space-5);
 }
 
+/* Enhanced product info display */
+.product-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.product-table-name {
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+.product-table-value {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Animation for updating column headers */
+@keyframes updating {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.updating {
+  animation: updating 0.5s ease;
+}
+
+/* Enhanced toggle switches for product assignment */
 .toggle-switch {
   position: relative;
   display: inline-block;
@@ -1344,8 +1432,59 @@ input:checked + .toggle-slider {
   background-color: var(--platinum-color);
 }
 
+/* Custom toggle colors for each column */
+.platinum-toggle input:checked + .toggle-slider {
+  background-color: var(--platinum-color);
+  box-shadow: 0 0 5px var(--platinum-glow);
+}
+
+.gold-toggle input:checked + .toggle-slider {
+  background-color: var(--gold-color);
+  box-shadow: 0 0 5px var(--gold-glow);
+}
+
+.silver-toggle input:checked + .toggle-slider {
+  background-color: var(--silver-color);
+  box-shadow: 0 0 5px var(--silver-glow);
+}
+
+.bronze-toggle input:checked + .toggle-slider {
+  background-color: var(--bronze-color);
+  box-shadow: 0 0 5px var(--bronze-glow);
+}
+
+.iron-toggle input:checked + .toggle-slider {
+  background-color: var(--iron-color);
+  box-shadow: 0 0 5px var(--iron-glow);
+}
+
 input:checked + .toggle-slider:before {
   transform: translateX(18px);
+}
+
+/* Add ripple effect for toggle switches */
+.toggle-ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 50px;
+  height: 50px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
 }
 
 .product-list {
@@ -1522,6 +1661,11 @@ input:checked + .toggle-slider:before {
 }
 
 @keyframes progress {
-  0% { transform: scaleX(1); }
-  100% { transform: scaleX(0); }
+  0% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+  }
 }
+

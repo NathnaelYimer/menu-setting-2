@@ -31,13 +31,11 @@
   <!-- Header with Title and Payment -->
   <div class="menu-header">
     <div class="menu-title-section">
-      <h1>Dealer<span>⚙️Gears</span></h1>
-      <p>INNOVATIVE TECHNOLOGY SOLUTIONS</p>
+      <!-- Header content removed as requested -->
     </div>
     <div class="base-payment">
       <div class="base-payment-label">Base Protected Payment</div>
       <div class="base-payment-amount">$227.06</div>
-      <div class="base-payment-monthly">/biweekly</div>
     </div>
   </div>
   
@@ -59,12 +57,8 @@
             <!-- Platinum Column -->
             <div class="price-section">
               <div class="price-main platinum-price">$49<span class="price-cents">.99</span></div>
-              <div class="price-monthly">$407.05 Monthly</div>
               <div class="price-term">for 60 months</div>
             </div>
-            
-            <div class="price-monthly">$305.05 biweekly</div>
-            <div class="price-term">for 72 months</div>
             
             <ul class="feature-list kanban-dropzone" data-plan="platinum">
               <li class="feature-item" draggable="true" data-id="p1" data-plan="platinum">
@@ -120,12 +114,8 @@
             <!-- Gold Column -->
             <div class="price-section">
               <div class="price-main gold-price">$45<span class="price-cents">.19</span></div>
-              <div class="price-monthly">$352.25 Monthly</div>
               <div class="price-term">for 60 months</div>
             </div> 
-            
-            <div class="price-monthly">$252.44 biweekly</div>
-            <div class="price-term">for 72 months</div>
             
             <ul class="feature-list kanban-dropzone" data-plan="gold">
               <li class="feature-item" draggable="true" data-id="p8" data-plan="gold">
@@ -175,12 +165,8 @@
             <!-- Silver Column -->
             <div class="price-section">
               <div class="price-main silver-price">$43<span class="price-cents">.11</div>
-              <div class="price-monthly">$320.17 Monthly</div>
               <div class="price-term">for 60 months</div>
             </div>
-            
-            <div class="price-monthly">$230.05 biweekly</div>
-            <div class="price-term">for 72 months</div>
             
             <ul class="feature-list kanban-dropzone" data-plan="silver">
               <li class="feature-item" draggable="true" data-id="p14" data-plan="silver">
@@ -224,12 +210,8 @@
             <!-- Bronze Column -->
             <div class="price-section">
               <div class="price-main bronze-price">$39<span class="price-cents">.44</span></div>
-              <div class="price-monthly">$293.50 Monthly</div>
               <div class="price-term">for 60 months</div>
             </div>
-            
-            <div class="price-monthly">$203.05 biweekly</div>
-            <div class="price-term">for 72 months</div>
             
             <ul class="feature-list kanban-dropzone" data-plan="bronze">
               <li class="feature-item" draggable="true" data-id="p19" data-plan="bronze">
@@ -261,12 +243,8 @@
             <!-- Iron Column -->
             <div class="price-section">
               <div class="price-main iron-price">$28<span class="price-cents">.44</span></div>
-              <div class="price-monthly">$274.50 Monthly</div>
               <div class="price-term">for 60 months</div>
             </div>
-            
-            <div class="price-monthly">$174.45 biweekly</div>
-            <div class="price-term">for 72 months</div>
             
             <ul class="feature-list kanban-dropzone" data-plan="iron">
               <li class="feature-item" draggable="true" data-id="p22" data-plan="iron">
@@ -310,6 +288,7 @@
       <div class="tab-content active" id="column-names">
         <div class="settings-section">
           <h3>Column Names</h3>
+          <p class="settings-description">Customize the names of each column in your F&I menu.</p>
           <div class="column-name-inputs">
             <div class="input-group">
               <label for="platinum-name">Platinum:</label>
@@ -339,6 +318,7 @@
       <div class="tab-content" id="product-assignment">
         <div class="settings-section">
           <h3>Assign Products to Columns</h3>
+          <p class="settings-description">Toggle which products appear in each column of your F&I menu.</p>
           <div class="product-assignment-table">
             <table>
               <thead>
@@ -363,6 +343,7 @@
       <div class="tab-content" id="manage-products">
         <div class="settings-section">
           <h3>Available Products</h3>
+          <p class="settings-description">Manage the products that can be assigned to columns in your F&I menu.</p>
           <div id="product-list" class="product-list">
             <!-- Products will be added dynamically -->
           </div>
@@ -373,6 +354,10 @@
               <div class="input-group">
                 <label for="new-product-name">Product Name:</label>
                 <input type="text" id="new-product-name" placeholder="Enter product name">
+              </div>
+              <div class="input-group">
+                <label for="new-product-value">Product Value ($):</label>
+                <input type="text" id="new-product-value" class="column-name-input" placeholder="Enter value (e.g. 500.00)">
               </div>
               <button id="add-product-btn" class="add-product-btn">
                 <i class="bi bi-plus-circle"></i> Add Product
@@ -407,3 +392,4 @@
 <script src="script.js"></script>
 </body>
 </html>
+
