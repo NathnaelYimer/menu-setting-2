@@ -1,4 +1,57 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Sidebar Toggle Functionality
+  const sidebar = document.getElementById("sidebar")
+  const mainContent = document.getElementById("main-content")
+  const sidebarToggle = document.getElementById("sidebar-toggle")
+
+  // Function to toggle sidebar
+  function toggleSidebar() {
+    // Check if we're on mobile or desktop
+    if (window.innerWidth <= 768) {
+      // Mobile behavior - overlay sidebar
+      document.body.classList.toggle("sidebar-open")
+    } else {
+      // Desktop behavior - push content
+      document.body.classList.toggle("sidebar-collapsed")
+    }
+  }
+
+  // Add click event to toggle button
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener("click", toggleSidebar)
+  }
+
+  // Close sidebar when clicking outside on mobile
+  if (mainContent) {
+    mainContent.addEventListener("click", (e) => {
+      if (window.innerWidth <= 768 && document.body.classList.contains("sidebar-open")) {
+        document.body.classList.remove("sidebar-open")
+      }
+    })
+  }
+
+  // Handle window resize
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 768) {
+      document.body.classList.remove("sidebar-open")
+    } else {
+      document.body.classList.remove("sidebar-collapsed")
+    }
+  })
+
+  // Make sure settings button in sidebar opens the modal
+  const sidebarSettingsButton = document.querySelector(".sidebar-menu-item #settings-button")
+  if (sidebarSettingsButton) {
+    sidebarSettingsButton.addEventListener("click", (e) => {
+      e.preventDefault()
+      const settingsModal = document.getElementById("settings-modal")
+      if (settingsModal) {
+        settingsModal.style.display = "block"
+        document.body.style.overflow = "hidden"
+      }
+    })
+  }
+
   // Enhanced initialization with loading animation
   document.body.classList.add("js-loading")
 
@@ -6,6 +59,8 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.remove("js-loading")
     document.body.classList.add("js-loaded")
   }, 500)
+
+  // *** DRAG AND DROP FUNCTIONALITY ***
 
   // Get all draggable items
   const draggableItems = document.querySelectorAll(".feature-item")
@@ -19,41 +74,90 @@ document.addEventListener("DOMContentLoaded", () => {
   // Variable to store the currently dragged item
   let draggedItem = null
   let originalPlan = null
-  const dragStartPosition = { x: 0, y: 0 }
+  let draggedItemClone = null
+  let dragStartPosition = { x: 0, y: 0 }
+  let touchStartPosition = { x: 0, y: 0 }
 
   // Add event listeners to all draggable items
   draggableItems.forEach((item) => {
     setupDragListeners(item)
   })
 
-  // Function to set up drag listeners for a new item
+  // Function to set up drag listeners for an item
   function setupDragListeners(item) {
+    // Make sure the item is draggable
+    item.setAttribute("draggable", "true")
+
     // Drag start event
     item.addEventListener("dragstart", function (e) {
+      e.stopPropagation()
       draggedItem = this
       originalPlan = this.getAttribute("data-plan")
 
-      // Store initial position for better visual feedback
-      dragStartPosition.x = e.clientX
-      dragStartPosition.y = e.clientY
+      // Create a clone for visual feedback
+      draggedItemClone = this.cloneNode(true)
+      draggedItemClone.classList.add("dragging-clone")
+      draggedItemClone.style.position = "absolute"
+      draggedItemClone.style.zIndex = "1000"
+      draggedItemClone.style.opacity = "0.8"
+      draggedItemClone.style.pointerEvents = "none"
+      document.body.appendChild(draggedItemClone)
+
+      // Store initial position
+      dragStartPosition = {
+        x: e.clientX,
+        y: e.clientY,
+      }
+
+      // Set drag image to transparent (we'll use our own visual)
+      const img = new Image()
+      img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+      e.dataTransfer.setDragImage(img, 0, 0)
 
       // Add dragging class for visual feedback
       setTimeout(() => {
         this.classList.add("dragging")
-
-        // Add dragging state to body for global cursor changes
         document.body.classList.add("is-dragging")
       }, 0)
 
       // Set data transfer
       e.dataTransfer.setData("text/plain", this.getAttribute("data-id"))
+      e.dataTransfer.effectAllowed = "move"
+
+      // Highlight all valid dropzones
+      dropzones.forEach((zone) => {
+        if (zone.getAttribute("data-plan") !== originalPlan) {
+          zone.classList.add("potential-target")
+        }
+      })
+    })
+
+    // Drag event for updating clone position
+    document.addEventListener("dragover", (e) => {
+      if (draggedItemClone) {
+        draggedItemClone.style.left = e.clientX - 20 + "px"
+        draggedItemClone.style.top = e.clientY - 20 + "px"
+      }
     })
 
     // Drag end event
-    item.addEventListener("dragend", function () {
+    item.addEventListener("dragend", function (e) {
       // Remove dragging class
       this.classList.remove("dragging")
       document.body.classList.remove("is-dragging")
+
+      // Remove clone
+      if (draggedItemClone && draggedItemClone.parentNode) {
+        draggedItemClone.parentNode.removeChild(draggedItemClone)
+      }
+      draggedItemClone = null
+
+      // Remove highlight from all dropzones
+      dropzones.forEach((zone) => {
+        zone.classList.remove("highlight")
+        zone.classList.remove("potential-target")
+        zone.classList.remove("pulse-animation")
+      })
 
       // Add animation class for smooth return if not dropped in a valid zone
       if (this.parentNode) {
@@ -71,87 +175,189 @@ document.addEventListener("DOMContentLoaded", () => {
     item.addEventListener(
       "touchstart",
       function (e) {
+        e.stopPropagation()
         const touch = e.targetTouches[0]
-        dragStartPosition.x = touch.clientX
-        dragStartPosition.y = touch.clientY
 
-        this.classList.add("touch-dragging")
+        // Store the initial touch position
+        touchStartPosition = {
+          x: touch.clientX,
+          y: touch.clientY,
+        }
+
+        // Set the dragged item
         draggedItem = this
         originalPlan = this.getAttribute("data-plan")
+
+        // Create visual feedback clone
+        draggedItemClone = this.cloneNode(true)
+        draggedItemClone.classList.add("dragging-clone")
+        draggedItemClone.style.position = "absolute"
+        draggedItemClone.style.left = touch.clientX + "px"
+        draggedItemClone.style.top = touch.clientY + "px"
+        draggedItemClone.style.zIndex = "1000"
+        draggedItemClone.style.opacity = "0.8"
+        draggedItemClone.style.pointerEvents = "none"
+        draggedItemClone.style.transform = "translate(-50%, -50%)"
+        draggedItemClone.style.width = this.offsetWidth + "px"
+        document.body.appendChild(draggedItemClone)
+
+        // Add visual feedback
+        this.classList.add("touch-dragging")
+        document.body.classList.add("is-dragging")
+
+        // Highlight all valid dropzones
+        dropzones.forEach((zone) => {
+          if (zone.getAttribute("data-plan") !== originalPlan) {
+            zone.classList.add("potential-target")
+          }
+        })
+      },
+      { passive: false },
+    )
+
+    item.addEventListener(
+      "touchmove",
+      (e) => {
+        e.preventDefault() // Prevent scrolling while dragging
+
+        if (!draggedItem || !draggedItemClone) return
+
+        const touch = e.targetTouches[0]
+
+        // Update clone position
+        draggedItemClone.style.left = touch.clientX + "px"
+        draggedItemClone.style.top = touch.clientY + "px"
+
+        // Find dropzone under touch point
+        const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY)
+        const dropzone = elemBelow ? elemBelow.closest(".kanban-dropzone") : null
+
+        // Remove highlight from all dropzones
+        dropzones.forEach((zone) => {
+          zone.classList.remove("highlight")
+          zone.classList.remove("pulse-animation")
+        })
+
+        // Add highlight to current dropzone if it's a valid target
+        if (dropzone && dropzone.getAttribute("data-plan") !== originalPlan) {
+          dropzone.classList.add("highlight")
+          dropzone.classList.add("pulse-animation")
+        }
+      },
+      { passive: false },
+    )
+
+    item.addEventListener(
+      "touchend",
+      function (e) {
+        e.preventDefault()
+
+        if (!draggedItem) return
+
+        // Remove visual feedback
+        this.classList.remove("touch-dragging")
+        document.body.classList.remove("is-dragging")
+
+        // Get the touch end position
+        const touch = e.changedTouches[0]
+
+        // Find dropzone under touch end point
+        const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY)
+        const dropzone = elemBelow ? elemBelow.closest(".kanban-dropzone") : null
+
+        // Remove clone
+        if (draggedItemClone && draggedItemClone.parentNode) {
+          draggedItemClone.parentNode.removeChild(draggedItemClone)
+        }
+        draggedItemClone = null
+
+        // Process drop if on a valid dropzone
+        if (dropzone) {
+          const targetPlan = dropzone.getAttribute("data-plan")
+
+          // Only move if dropping to a different plan
+          if (originalPlan !== targetPlan) {
+            // Clone the item to keep its event listeners
+            const clonedItem = draggedItem.cloneNode(true)
+
+            // Update the plan attribute
+            clonedItem.setAttribute("data-plan", targetPlan)
+
+            // Update the checkmark color
+            const checkmark = clonedItem.querySelector(".feature-check")
+            if (checkmark) {
+              checkmark.className = `feature-check ${targetPlan}-check`
+            }
+
+            // Add the item to the new dropzone with animation
+            clonedItem.style.opacity = "0"
+            clonedItem.style.transform = "translateY(10px)"
+            dropzone.appendChild(clonedItem)
+
+            // Trigger reflow for animation
+            void clonedItem.offsetWidth
+
+            // Animate in
+            clonedItem.style.transition = "all 0.3s ease-out"
+            clonedItem.style.opacity = "1"
+            clonedItem.style.transform = "translateY(0)"
+
+            // Remove the original item with fade out animation
+            draggedItem.style.transition = "all 0.2s ease-out"
+            draggedItem.style.opacity = "0"
+            draggedItem.style.transform = "scale(0.8)"
+
+            setTimeout(() => {
+              if (draggedItem.parentNode) {
+                draggedItem.parentNode.removeChild(draggedItem)
+              }
+            }, 200)
+
+            // Add event listeners to the cloned item
+            setupDragListeners(clonedItem)
+
+            // Show success toast
+            showToast(`Feature moved to ${targetPlan.charAt(0).toUpperCase() + targetPlan.slice(1)} plan`)
+          }
+        }
+
+        // Remove highlight from all dropzones
+        dropzones.forEach((zone) => {
+          zone.classList.remove("highlight")
+          zone.classList.remove("potential-target")
+          zone.classList.remove("pulse-animation")
+        })
+
+        draggedItem = null
+        originalPlan = null
+      },
+      { passive: false },
+    )
+
+    // Prevent touchcancel from breaking the drag operation
+    item.addEventListener(
+      "touchcancel",
+      function (e) {
+        if (draggedItemClone && draggedItemClone.parentNode) {
+          draggedItemClone.parentNode.removeChild(draggedItemClone)
+        }
+        draggedItemClone = null
+
+        this.classList.remove("touch-dragging")
+        document.body.classList.remove("is-dragging")
+
+        // Remove highlight from all dropzones
+        dropzones.forEach((zone) => {
+          zone.classList.remove("highlight")
+          zone.classList.remove("potential-target")
+          zone.classList.remove("pulse-animation")
+        })
+
+        draggedItem = null
+        originalPlan = null
       },
       { passive: true },
     )
-
-    item.addEventListener("touchmove", function (e) {
-      if (!draggedItem) return
-
-      const touch = e.targetTouches[0]
-      const moveX = touch.clientX - dragStartPosition.x
-      const moveY = touch.clientY - dragStartPosition.y
-
-      this.style.transform = `translate(${moveX}px, ${moveY}px)`
-
-      // Find dropzone under touch point
-      const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY)
-      const dropzone = elemBelow?.closest(".kanban-dropzone")
-
-      // Remove highlight from all dropzones
-      dropzones.forEach((zone) => zone.classList.remove("highlight"))
-
-      // Add highlight to current dropzone
-      if (dropzone) {
-        dropzone.classList.add("highlight")
-      }
-
-      e.preventDefault()
-    })
-
-    item.addEventListener("touchend", function (e) {
-      if (!draggedItem) return
-
-      this.classList.remove("touch-dragging")
-      this.style.transform = ""
-
-      // Find dropzone under touch end point
-      const touch = e.changedTouches[0]
-      const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY)
-      const dropzone = elemBelow?.closest(".kanban-dropzone")
-
-      if (dropzone) {
-        const targetPlan = dropzone.getAttribute("data-plan")
-
-        // Only move if dropping to a different plan
-        if (originalPlan !== targetPlan) {
-          // Clone the item to keep its event listeners
-          const clonedItem = draggedItem.cloneNode(true)
-
-          // Update the plan attribute
-          clonedItem.setAttribute("data-plan", targetPlan)
-
-          // Update the checkmark color
-          const checkmark = clonedItem.querySelector(".feature-check")
-          checkmark.className = `feature-check ${targetPlan}-check`
-
-          // Add the item to the new dropzone
-          dropzone.appendChild(clonedItem)
-
-          // Remove the original item
-          draggedItem.remove()
-
-          // Add event listeners to the cloned item
-          setupDragListeners(clonedItem)
-
-          // Show success toast
-          showToast(`Feature moved to ${targetPlan.charAt(0).toUpperCase() + targetPlan.slice(1)} plan`)
-        }
-      }
-
-      // Remove highlight from all dropzones
-      dropzones.forEach((zone) => zone.classList.remove("highlight"))
-
-      draggedItem = null
-      originalPlan = null
-    })
   }
 
   // Add event listeners to all dropzones
@@ -159,14 +365,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // Dragover event
     zone.addEventListener("dragover", function (e) {
       e.preventDefault()
-      this.classList.add("highlight")
 
-      // Add pulsing animation class
-      this.classList.add("pulse-animation")
+      // Only highlight if this is a different plan than the original
+      if (draggedItem && this.getAttribute("data-plan") !== originalPlan) {
+        this.classList.add("highlight")
+        this.classList.add("pulse-animation")
+        e.dataTransfer.dropEffect = "move"
+      }
     })
 
     // Dragleave event
-    zone.addEventListener("dragleave", function () {
+    zone.addEventListener("dragleave", function (e) {
       this.classList.remove("highlight")
       this.classList.remove("pulse-animation")
     })
@@ -174,6 +383,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Drop event
     zone.addEventListener("drop", function (e) {
       e.preventDefault()
+      e.stopPropagation()
+
       this.classList.remove("highlight")
       this.classList.remove("pulse-animation")
 
@@ -190,7 +401,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Update the checkmark color
           const checkmark = clonedItem.querySelector(".feature-check")
-          checkmark.className = `feature-check ${targetPlan}-check`
+          if (checkmark) {
+            checkmark.className = `feature-check ${targetPlan}-check`
+          }
 
           // Add the item to the new dropzone with animation
           clonedItem.style.opacity = "0"
@@ -211,7 +424,9 @@ document.addEventListener("DOMContentLoaded", () => {
           draggedItem.style.transform = "scale(0.8)"
 
           setTimeout(() => {
-            draggedItem.remove()
+            if (draggedItem.parentNode) {
+              draggedItem.parentNode.removeChild(draggedItem)
+            }
           }, 200)
 
           // Add event listeners to the cloned item
@@ -348,41 +563,45 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Open settings modal with enhanced animation
-  settingsButton.addEventListener("click", () => {
-    // Initialize data from the DOM
-    initializeProductsFromDOM()
-    initializeColumnsFromDOM()
+  if (settingsButton) {
+    settingsButton.addEventListener("click", () => {
+      // Initialize data from the DOM
+      initializeProductsFromDOM()
+      initializeColumnsFromDOM()
 
-    settingsModal.style.display = "block"
-    document.body.style.overflow = "hidden" // Prevent scrolling
+      settingsModal.style.display = "block"
+      document.body.style.overflow = "hidden" // Prevent scrolling
 
-    // Add entrance animation class
-    settingsModal.classList.add("modal-entering")
+      // Add entrance animation class
+      settingsModal.classList.add("modal-entering")
 
-    // Trigger animations for modal content
-    setTimeout(() => {
-      settingsModal.classList.remove("modal-entering")
-      settingsModal.classList.add("modal-entered")
-    }, 50)
+      // Trigger animations for modal content
+      setTimeout(() => {
+        settingsModal.classList.remove("modal-entering")
+        settingsModal.classList.add("modal-entered")
+      }, 50)
 
-    populateProductAssignmentTable()
-    populateProductList()
+      populateProductAssignmentTable()
+      populateProductList()
 
-    // Update column names from the main table
-    updateColumnNamesFromTable()
-  })
+      // Update column names from the main table
+      updateColumnNamesFromTable()
+    })
+  }
 
   // Close settings modal with exit animation
-  closeSettings.addEventListener("click", () => {
-    settingsModal.classList.remove("modal-entered")
-    settingsModal.classList.add("modal-exiting")
+  if (closeSettings) {
+    closeSettings.addEventListener("click", () => {
+      settingsModal.classList.remove("modal-entered")
+      settingsModal.classList.add("modal-exiting")
 
-    setTimeout(() => {
-      settingsModal.style.display = "none"
-      settingsModal.classList.remove("modal-exiting")
-      document.body.style.overflow = ""
-    }, 300)
-  })
+      setTimeout(() => {
+        settingsModal.style.display = "none"
+        settingsModal.classList.remove("modal-exiting")
+        document.body.style.overflow = ""
+      }, 300)
+    })
+  }
 
   // Close modal when clicking outside with exit animation
   window.addEventListener("click", (e) => {
@@ -458,6 +677,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Populate product assignment table with enhanced styling
   function populateProductAssignmentTable() {
     const tableBody = document.getElementById("product-assignment-body")
+    if (!tableBody) return
+
     tableBody.innerHTML = ""
 
     availableProducts.forEach((product, index) => {
@@ -562,6 +783,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Populate product list with enhanced animations
   function populateProductList() {
     const productList = document.getElementById("product-list")
+    if (!productList) return
+
     productList.innerHTML = ""
 
     availableProducts.forEach((product, index) => {
@@ -791,7 +1014,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Create value input if it doesn't exist
   let newProductValueInput = document.getElementById("new-product-value")
 
-  if (!newProductValueInput) {
+  if (!newProductValueInput && addProductBtn) {
     newProductValueInput = document.createElement("input")
     newProductValueInput.id = "new-product-value"
     newProductValueInput.className = "column-name-input"
@@ -810,7 +1033,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Add to form
     const addProductForm = document.querySelector(".add-product-form")
-    addProductForm.insertBefore(valueGroup, addProductBtn)
+    if (addProductForm) {
+      addProductForm.insertBefore(valueGroup, addProductBtn)
+    }
   }
   // Enhanced validation for inputs
   ;[newProductNameInput, newProductValueInput].forEach((input) => {
@@ -852,108 +1077,112 @@ document.addEventListener("DOMContentLoaded", () => {
     return !!value
   }
 
-  addProductBtn.addEventListener("click", () => {
-    const productName = newProductNameInput.value.trim()
-    const productValue = newProductValueInput ? newProductValueInput.value.trim() : "0.00"
+  if (addProductBtn) {
+    addProductBtn.addEventListener("click", () => {
+      const productName = newProductNameInput.value.trim()
+      const productValue = newProductValueInput ? newProductValueInput.value.trim() : "0.00"
 
-    // Validate inputs
-    const nameValid = validateInput(newProductNameInput, true)
-    const valueValid = newProductValueInput ? validateInput(newProductValueInput, true) : true
+      // Validate inputs
+      const nameValid = validateInput(newProductNameInput, true)
+      const valueValid = newProductValueInput ? validateInput(newProductValueInput, true) : true
 
-    if (nameValid && valueValid) {
-      // Add button press animation
-      addProductBtn.classList.add("button-pressed")
+      if (nameValid && valueValid) {
+        // Add button press animation
+        addProductBtn.classList.add("button-pressed")
 
-      setTimeout(() => {
-        addProductBtn.classList.remove("button-pressed")
-
-        // Generate new ID
-        const newId = "p" + (availableProducts.length + 1)
-
-        // Add to availableProducts
-        availableProducts.push({ id: newId, name: productName, value: productValue })
-
-        // Clear inputs
-        newProductNameInput.value = ""
-        if (newProductValueInput) newProductValueInput.value = ""
-
-        // Update UI
-        populateProductList()
-        populateProductAssignmentTable()
-
-        // Show toast
-        showToast(`${productName} added successfully`)
-      }, 200)
-    } else {
-      // Shake the form for invalid inputs
-      const addProductForm = document.querySelector(".add-product-form")
-      if (addProductForm) {
-        addProductForm.classList.add("validation-error")
         setTimeout(() => {
-          addProductForm.classList.remove("validation-error")
-        }, 500)
-      }
+          addProductBtn.classList.remove("button-pressed")
 
-      showToast("Please fill in all required fields", true)
-    }
-  })
+          // Generate new ID
+          const newId = "p" + (availableProducts.length + 1)
+
+          // Add to availableProducts
+          availableProducts.push({ id: newId, name: productName, value: productValue })
+
+          // Clear inputs
+          newProductNameInput.value = ""
+          if (newProductValueInput) newProductValueInput.value = ""
+
+          // Update UI
+          populateProductList()
+          populateProductAssignmentTable()
+
+          // Show toast
+          showToast(`${productName} added successfully`)
+        }, 200)
+      } else {
+        // Shake the form for invalid inputs
+        const addProductForm = document.querySelector(".add-product-form")
+        if (addProductForm) {
+          addProductForm.classList.add("validation-error")
+          setTimeout(() => {
+            addProductForm.classList.remove("validation-error")
+          }, 500)
+        }
+
+        showToast("Please fill in all required fields", true)
+      }
+    })
+  }
 
   // Save settings with enhanced animation and feedback
-  saveSettingsBtn.addEventListener("click", () => {
-    // Add button press animation
-    saveSettingsBtn.classList.add("button-pressed")
-    saveSettingsBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...'
-
-    setTimeout(() => {
-      // Update column names
-      columnData.forEach((column) => {
-        const input = document.getElementById(`${column.id}-name`)
-        if (input) {
-          column.name = input.value
-
-          // Update column header in the main table
-          const columnHeader = document.getElementById(`column-${column.id}`)
-          if (columnHeader) {
-            // Add animation to header update
-            columnHeader.classList.add("updating")
-            columnHeader.textContent = column.name
-
-            setTimeout(() => {
-              columnHeader.classList.remove("updating")
-            }, 500)
-          }
-        }
-      })
-
-      // Update the actual menu items based on product assignments
-      updateMenuItems()
-
-      // Save settings to localStorage for persistence
-      try {
-        localStorage.setItem("columnData", JSON.stringify(columnData))
-        localStorage.setItem("availableProducts", JSON.stringify(availableProducts))
-      } catch (e) {
-        console.warn("Could not save settings to localStorage:", e)
-      }
-
-      // Reset button state
-      saveSettingsBtn.classList.remove("button-pressed")
-      saveSettingsBtn.innerHTML = '<i class="bi bi-check-circle"></i> Save Settings'
-
-      // Close modal with exit animation
-      settingsModal.classList.remove("modal-entered")
-      settingsModal.classList.add("modal-exiting")
+  if (saveSettingsBtn) {
+    saveSettingsBtn.addEventListener("click", () => {
+      // Add button press animation
+      saveSettingsBtn.classList.add("button-pressed")
+      saveSettingsBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...'
 
       setTimeout(() => {
-        settingsModal.style.display = "none"
-        settingsModal.classList.remove("modal-exiting")
-        document.body.style.overflow = ""
-      }, 300)
+        // Update column names
+        columnData.forEach((column) => {
+          const input = document.getElementById(`${column.id}-name`)
+          if (input) {
+            column.name = input.value
 
-      // Show toast with success animation
-      showToast("Settings saved successfully", false, "success-toast")
-    }, 800) // Simulate saving delay for better UX
-  })
+            // Update column header in the main table
+            const columnHeader = document.getElementById(`column-${column.id}`)
+            if (columnHeader) {
+              // Add animation to header update
+              columnHeader.classList.add("updating")
+              columnHeader.textContent = column.name
+
+              setTimeout(() => {
+                columnHeader.classList.remove("updating")
+              }, 500)
+            }
+          }
+        })
+
+        // Update the actual menu items based on product assignments
+        updateMenuItems()
+
+        // Save settings to localStorage for persistence
+        try {
+          localStorage.setItem("columnData", JSON.stringify(columnData))
+          localStorage.setItem("availableProducts", JSON.stringify(availableProducts))
+        } catch (e) {
+          console.warn("Could not save settings to localStorage:", e)
+        }
+
+        // Reset button state
+        saveSettingsBtn.classList.remove("button-pressed")
+        saveSettingsBtn.innerHTML = '<i class="bi bi-check-circle"></i> Save Settings'
+
+        // Close modal with exit animation
+        settingsModal.classList.remove("modal-entered")
+        settingsModal.classList.add("modal-exiting")
+
+        setTimeout(() => {
+          settingsModal.style.display = "none"
+          settingsModal.classList.remove("modal-exiting")
+          document.body.style.overflow = ""
+        }, 300)
+
+        // Show toast with success animation
+        showToast("Settings saved successfully", false, "success-toast")
+      }, 800) // Simulate saving delay for better UX
+    })
+  }
 
   // Add function to load saved settings on page load
   function loadSavedSettings() {
@@ -1032,6 +1261,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Enhanced toast notification with types and animations
   function showToast(message, isError = false, customClass = "") {
+    const toast = document.getElementById("toast")
+    const toastMessage = document.getElementById("toast-message")
+
+    if (!toast || !toastMessage) return
+
     toastMessage.textContent = message
 
     // Reset classes
@@ -1040,14 +1274,17 @@ document.addEventListener("DOMContentLoaded", () => {
       toast.classList.add(customClass)
     }
 
-    if (isError) {
-      toast.style.borderLeftColor = "var(--gold-color)"
-      document.querySelector(".toast-icon").style.color = "var(--gold-color)"
-      document.querySelector(".toast-icon").className = "bi bi-exclamation-circle toast-icon"
-    } else {
-      toast.style.borderLeftColor = "var(--platinum-color)"
-      document.querySelector(".toast-icon").style.color = "var(--platinum-color)"
-      document.querySelector(".toast-icon").className = "bi bi-check-circle toast-icon"
+    const toastIcon = document.querySelector(".toast-icon")
+    if (toastIcon) {
+      if (isError) {
+        toast.style.borderLeftColor = "var(--gold-color)"
+        toastIcon.style.color = "var(--gold-color)"
+        toastIcon.className = "bi bi-exclamation-circle toast-icon"
+      } else {
+        toast.style.borderLeftColor = "var(--platinum-color)"
+        toastIcon.style.color = "var(--platinum-color)"
+        toastIcon.className = "bi bi-check-circle toast-icon"
+      }
     }
 
     // Add show class with animation
@@ -1072,24 +1309,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // Add keyboard shortcuts for accessibility
   document.addEventListener("keydown", (e) => {
     // ESC key to close modal
-    if (e.key === "Escape" && settingsModal.style.display === "block") {
-      closeSettings.click()
+    if (e.key === "Escape" && settingsModal && settingsModal.style.display === "block") {
+      if (closeSettings) closeSettings.click()
     }
 
     // Ctrl+S to save settings when modal is open
-    if (e.ctrlKey && e.key === "s" && settingsModal.style.display === "block") {
+    if (e.ctrlKey && e.key === "s" && settingsModal && settingsModal.style.display === "block") {
       e.preventDefault()
-      saveSettingsBtn.click()
+      if (saveSettingsBtn) saveSettingsBtn.click()
     }
   })
 
-  // If there's any JavaScript that references the .price-monthly elements, we should update it.
-
-  // Look for any code that might reference these elements, such as:
-
-  // Since I don't see any specific JavaScript that directly manipulates the .price-monthly elements in the provided script.js, no changes are needed to the JavaScript code for this specific requirement.
-
-  // However, if there are any functions that update the monthly prices dynamically, those would need to be modified. Since we don't see such functions in the current code, no changes are needed at this time.
+  // Load saved settings
   loadSavedSettings()
 })
 
