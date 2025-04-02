@@ -306,6 +306,9 @@ document.addEventListener("DOMContentLoaded", () => {
               draggedItem.style.transition = "all 0.2s ease-out"
               draggedItem.style.opacity = "0"
               draggedItem.style.transform = "scale(0.8)"
+              draggedItem.style.height = "0"
+              draggedItem.style.margin = "0"
+              draggedItem.style.padding = "0"
   
               setTimeout(() => {
                 if (draggedItem.parentNode) {
@@ -422,6 +425,11 @@ document.addEventListener("DOMContentLoaded", () => {
             draggedItem.style.transition = "all 0.2s ease-out"
             draggedItem.style.opacity = "0"
             draggedItem.style.transform = "scale(0.8)"
+            // Fix for the space issue - collapse the height and margins
+            draggedItem.style.height = "0"
+            draggedItem.style.margin = "0"
+            draggedItem.style.padding = "0"
+            draggedItem.style.border = "none"
   
             setTimeout(() => {
               if (draggedItem.parentNode) {
@@ -1323,5 +1331,3 @@ document.addEventListener("DOMContentLoaded", () => {
     // Load saved settings
     loadSavedSettings()
   })
-  
-  

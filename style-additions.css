@@ -108,6 +108,830 @@ body {
   overflow-x: hidden;
   min-height: 100vh;
 }
+
+
+
+
+/* Editable price input styles */
+.product-table-value-container {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+.currency-symbol {
+  margin-right: 2px;
+}
+
+.product-table-value-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed #ccc;
+  color: #666;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  width: 70px;
+  transition: all 0.2s ease;
+}
+
+.product-table-value-input:hover {
+  border-bottom-color: #999;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.product-table-value-input:focus {
+  outline: none;
+  border-bottom: 1px solid var(--platinum-color);
+  background-color: rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+
+
+
+
+
+
+
+ /* Enhanced editable price input styles */
+.product-table-value-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  margin-top: 4px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.product-table-value-container:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.product-table-value-container::after {
+  content: "\f303"; /* Pencil icon from Bootstrap Icons */
+  font-family: "Bootstrap Icons";
+  position: absolute;
+  right: 6px;
+  font-size: 0.7rem;
+  color: #aaa;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.product-table-value-container:hover::after {
+  opacity: 1;
+}
+
+.currency-symbol {
+  font-weight: 500;
+  color: #555;
+  margin-right: 2px;
+}
+
+.product-table-value-input {
+  background: transparent;
+  border: none;
+  color: #444;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 2px 4px;
+  width: 70px;
+  transition: all 0.2s ease;
+}
+
+.product-table-value-input:focus {
+  outline: none;
+  background-color: white;
+  box-shadow: 0 0 0 2px rgba(var(--platinum-color-rgb, 0, 120, 212), 0.25);
+}
+
+/* Active state for the container when input is focused */
+.product-table-value-input:focus + .product-table-value-container,
+.product-table-value-container:has(.product-table-value-input:focus) {
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Add a subtle animation when value changes */
+@keyframes value-updated {
+  0% { background-color: rgba(var(--platinum-color-rgb, 0, 120, 212), 0.2); }
+  100% { background-color: rgba(0, 0, 0, 0.02); }
+}
+
+.value-updated {
+  animation: value-updated 1s ease;
+}
+
+
+
+
+
+/* Editable price input styles */
+.product-table-value-container {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+.currency-symbol {
+  margin-right: 2px;
+}
+
+.product-table-value-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed #ccc;
+  color: #666;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  width: 70px;
+  transition: all 0.2s ease;
+}
+
+.product-table-value-input:hover {
+  border-bottom-color: #999;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.product-table-value-input:focus {
+  outline: none;
+  border-bottom: 1px solid var(--platinum-color);
+  background-color: rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Editable column names in product assignment table */
+.editable-column-name {
+  position: relative;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editable-column-name:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.editable-column-name:hover::after {
+  content: "\f303"; /* Pencil icon from Bootstrap Icons */
+  font-family: "Bootstrap Icons";
+  position: absolute;
+  right: -5px;
+  top: -5px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editable-column-name.editing {
+  background-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+  outline: none;
+}
+
+/* Drag and drop styles for product rows */
+#product-assignment-body tr {
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+#product-assignment-body tr:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+#product-assignment-body tr.dragging {
+  opacity: 0.5;
+  background-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  cursor: grabbing;
+}
+
+/* Animation for value updates */
+@keyframes value-updated {
+  0% {
+    background-color: rgba(52, 152, 219, 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.value-updated {
+  animation: value-updated 1s ease;
+}
+
+/* Editing state for value container */
+.product-table-value-container.editing {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Payment term dropdown styles */
+.term-dropdown-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 5px;
+}
+
+.term-dropdown-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+
+.term-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-light-soft);
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  padding: 2px 8px;
+  transition: all 0.2s ease;
+}
+
+.term-dropdown:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.term-selected-value {
+  margin-right: 4px;
+}
+
+.term-dropdown-icon {
+  font-size: 10px;
+  transition: transform 0.2s ease;
+}
+
+.term-dropdown-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background-color: var(--bg-dark);
+  border-radius: 4px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.term-dropdown-options.show {
+  max-height: 200px;
+  opacity: 1;
+  pointer-events: auto;
+  overflow-y: auto;
+}
+
+.term-dropdown-option {
+  padding: 6px 10px;
+  transition: background-color 0.2s ease;
+}
+
+.term-dropdown-option:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.term-dropdown-option.selected {
+  background-color: rgba(52, 152, 219, 0.2);
+  font-weight: 500;
+}
+
+.term-dropdown-option:active {
+  background-color: rgba(52, 152, 219, 0.3);
+}
+
+/* Animation for dropdown */
+.term-dropdown-options.show + .term-dropdown-icon,
+.term-dropdown:has(.term-dropdown-options.show) .term-dropdown-icon {
+  transform: rotate(180deg);
+}
+
+/* Responsive adjustments for term dropdown */
+@media (max-width: 768px) {
+  .term-dropdown-container {
+    flex-direction: row;
+  }
+
+  .term-dropdown {
+    font-size: 12px;
+    padding: 1px 6px;
+  }
+
+  .term-dropdown-options {
+    width: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+
+
+
+/* Editable price input styles */
+.product-table-value-container {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+.currency-symbol {
+  margin-right: 2px;
+}
+
+.product-table-value-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed #ccc;
+  color: #666;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  width: 70px;
+  transition: all 0.2s ease;
+}
+
+.product-table-value-input:hover {
+  border-bottom-color: #999;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.product-table-value-input:focus {
+  outline: none;
+  border-bottom: 1px solid var(--platinum-color);
+  background-color: rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Editable column names in product assignment table */
+.editable-column-name {
+  position: relative;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editable-column-name:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.editable-column-name:hover::after {
+  content: "\f303"; /* Pencil icon from Bootstrap Icons */
+  font-family: "Bootstrap Icons";
+  position: absolute;
+  right: -5px;
+  top: -5px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editable-column-name.editing {
+  background-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+  outline: none;
+}
+
+/* Drag and drop styles for product rows */
+#product-assignment-body tr {
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+#product-assignment-body tr:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+#product-assignment-body tr.dragging {
+  opacity: 0.5;
+  background-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  cursor: grabbing;
+}
+
+/* Animation for value updates */
+@keyframes value-updated {
+  0% {
+    background-color: rgba(52, 152, 219, 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.value-updated {
+  animation: value-updated 1s ease;
+}
+
+/* Editing state for value container */
+.product-table-value-container.editing {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Payment term dropdown styles */
+.term-dropdown-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 5px;
+}
+
+.term-dropdown-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+
+.term-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-light-soft);
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  padding: 2px 8px;
+  transition: all 0.2s ease;
+}
+
+.term-dropdown:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.term-selected-value {
+  margin-right: 4px;
+}
+
+.term-dropdown-icon {
+  font-size: 10px;
+  transition: transform 0.2s ease;
+}
+
+.term-dropdown-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background-color: var(--bg-dark);
+  border-radius: 4px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.term-dropdown-options.show {
+  max-height: 200px;
+  opacity: 1;
+  pointer-events: auto;
+  overflow-y: auto;
+}
+
+.term-dropdown-option {
+  padding: 6px 10px;
+  transition: background-color 0.2s ease;
+}
+
+.term-dropdown-option:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.term-dropdown-option.selected {
+  background-color: rgba(52, 152, 219, 0.2);
+  font-weight: 500;
+}
+
+.term-dropdown-option:active {
+  background-color: rgba(52, 152, 219, 0.3);
+}
+
+/* Animation for dropdown */
+.term-dropdown-options.show + .term-dropdown-icon,
+.term-dropdown:has(.term-dropdown-options.show) .term-dropdown-icon {
+  transform: rotate(180deg);
+}
+
+/* Responsive adjustments for term dropdown */
+@media (max-width: 768px) {
+  .term-dropdown-container {
+    flex-direction: row;
+  }
+
+  .term-dropdown {
+    font-size: 12px;
+    padding: 1px 6px;
+  }
+
+  .term-dropdown-options {
+    width: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+/* Add these new styles at the end of your existing CSS */
+
+/* Product explanation modal */
+.product-explanation-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.product-explanation-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.product-explanation-content {
+  background-color: var(--bg-dark);
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  position: relative;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.product-explanation-modal.show .product-explanation-content {
+  transform: translateY(0);
+}
+
+.product-explanation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.product-explanation-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.close-explanation {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-explanation:hover {
+  color: var(--text-light);
+}
+
+.product-explanation-body {
+  color: var(--text-light-soft);
+  line-height: 1.6;
+}
+
+.product-explanation-footer {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Make feature items clickable */
+.feature-item {
+  cursor: pointer;
+  position: relative;
+}
+
+.feature-item:hover::after {
+  content: "?";
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--text-light-soft);
+}
+
+/* Column visibility toggle styles */
+.column-visibility-section {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.column-visibility-title {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 10px;
+  color: var(--text-light);
+}
+
+.column-visibility-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.column-visibility-toggle {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.column-visibility-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.column-visibility-toggle label {
+  margin-left: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Hidden column styles */
+.menu-table th.hidden-column,
+.menu-table td.hidden-column {
+  display: none;
+}
+
+/* Full terms modal */
+.full-terms-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.full-terms-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.full-terms-content {
+  background-color: var(--bg-dark);
+  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  position: relative;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.full-terms-modal.show .full-terms-content {
+  transform: translateY(0);
+}
+
+.full-terms-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.full-terms-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.close-terms {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-terms:hover {
+  color: var(--text-light);
+}
+
+.full-terms-body {
+  color: var(--text-light-soft);
+  line-height: 1.6;
+}
+
+.full-terms-section {
+  margin-bottom: 20px;
+}
+
+.full-terms-section-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 10px;
+  color: var(--text-light);
+}
+
+.view-terms-link {
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.view-terms-link:hover {
+  color: var(--text-light);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .sidebar {
   position: fixed;
   top: 0;

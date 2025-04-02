@@ -101,6 +101,8 @@ document.addEventListener("DOMContentLoaded", () => {
       draggedItemClone.style.zIndex = "1000"
       draggedItemClone.style.opacity = "0.8"
       draggedItemClone.style.pointerEvents = "none"
+      // Add rotation to the clone - make it turn sideways
+      draggedItemClone.style.transform = "rotate(5deg)"
       document.body.appendChild(draggedItemClone)
 
       // Store initial position
@@ -135,8 +137,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // Drag event for updating clone position
     document.addEventListener("dragover", (e) => {
       if (draggedItemClone) {
+        // Update position and increase rotation based on movement
         draggedItemClone.style.left = e.clientX - 20 + "px"
         draggedItemClone.style.top = e.clientY - 20 + "px"
+
+        // Calculate rotation based on horizontal movement for a more dynamic effect
+        const moveX = e.clientX - dragStartPosition.x
+        const rotation = 5 + (moveX / 100) * 3 // Base rotation + dynamic component
+        draggedItemClone.style.transform = `rotate(${rotation}deg)`
       }
     })
 
@@ -197,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
         draggedItemClone.style.zIndex = "1000"
         draggedItemClone.style.opacity = "0.8"
         draggedItemClone.style.pointerEvents = "none"
-        draggedItemClone.style.transform = "translate(-50%, -50%)"
+        draggedItemClone.style.transform = "translate(-50%, -50%) rotate(5deg)"
         draggedItemClone.style.width = this.offsetWidth + "px"
         document.body.appendChild(draggedItemClone)
 
@@ -227,6 +235,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Update clone position
         draggedItemClone.style.left = touch.clientX + "px"
         draggedItemClone.style.top = touch.clientY + "px"
+
+        // Calculate rotation based on horizontal movement
+        const moveX = touch.clientX - touchStartPosition.x
+        const rotation = 5 + (moveX / 100) * 3 // Base rotation + dynamic component
+        draggedItemClone.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`
 
         // Find dropzone under touch point
         const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY)
@@ -306,6 +319,10 @@ document.addEventListener("DOMContentLoaded", () => {
             draggedItem.style.transition = "all 0.2s ease-out"
             draggedItem.style.opacity = "0"
             draggedItem.style.transform = "scale(0.8)"
+            draggedItem.style.height = "0"
+            draggedItem.style.margin = "0"
+            draggedItem.style.padding = "0"
+            draggedItem.style.border = "none"
 
             setTimeout(() => {
               if (draggedItem.parentNode) {
@@ -422,6 +439,11 @@ document.addEventListener("DOMContentLoaded", () => {
           draggedItem.style.transition = "all 0.2s ease-out"
           draggedItem.style.opacity = "0"
           draggedItem.style.transform = "scale(0.8)"
+          // Fix for the space issue - collapse the height and margins
+          draggedItem.style.height = "0"
+          draggedItem.style.margin = "0"
+          draggedItem.style.padding = "0"
+          draggedItem.style.border = "none"
 
           setTimeout(() => {
             if (draggedItem.parentNode) {
@@ -558,6 +580,7 @@ document.addEventListener("DOMContentLoaded", () => {
         id: columnId,
         name: header.textContent.trim(),
         products: columnProducts,
+        termMonths: 60, // Default term months
       })
     })
   }
@@ -674,15 +697,116 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   }
 
-  // Populate product assignment table with enhanced styling
+  // Populate product assignment table with enhanced styling and editable prices
   function populateProductAssignmentTable() {
     const tableBody = document.getElementById("product-assignment-body")
     if (!tableBody) return
 
     tableBody.innerHTML = ""
 
-    availableProducts.forEach((product, index) => {
+    // Create table header with editable column names
+    const headerRow = document.querySelector(".product-assignment-table thead tr")
+    if (headerRow) {
+      // Clear existing headers except the first one (Product)
+      while (headerRow.children.length > 1) {
+        headerRow.removeChild(headerRow.lastChild)
+      }
+
+      // Add editable column headers
+      columnData.forEach((column) => {
+        const th = document.createElement("th")
+        th.dataset.columnId = column.id
+
+        // Create editable header
+        const headerInput = document.createElement("div")
+        headerInput.className = "editable-column-name"
+        headerInput.textContent = column.name
+        headerInput.contentEditable = true
+        headerInput.dataset.originalValue = column.name
+
+        // Add event listeners for editing
+        headerInput.addEventListener("focus", function () {
+          this.dataset.originalValue = this.textContent.trim()
+          this.classList.add("editing")
+        })
+
+        headerInput.addEventListener("blur", function () {
+          const newValue = this.textContent.trim()
+          this.classList.remove("editing")
+
+          if (newValue && newValue !== this.dataset.originalValue) {
+            // Update column name
+            const columnId = this.parentNode.dataset.columnId
+            const column = columnData.find((c) => c.id === columnId)
+            if (column) {
+              column.name = newValue
+
+              // Update input in column names tab
+              const input = document.getElementById(`${columnId}-name`)
+              if (input) {
+                input.value = newValue
+              }
+
+              showToast(`Column renamed to "${newValue}"`)
+            }
+          } else if (!newValue) {
+            // Revert to original if empty
+            this.textContent = this.dataset.originalValue
+          }
+        })
+
+        headerInput.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault()
+            this.blur()
+          } else if (e.key === "Escape") {
+            e.preventDefault()
+            this.textContent = this.dataset.originalValue
+            this.blur()
+          }
+        })
+
+        th.appendChild(headerInput)
+        headerRow.appendChild(th)
+      })
+    }
+
+    // Sort products for consistent order
+    const sortedProducts = [...availableProducts].sort((a, b) => a.name.localeCompare(b.name))
+
+    // Add products to the table with drag and drop functionality
+    sortedProducts.forEach((product, index) => {
       const row = document.createElement("tr")
+      row.dataset.productId = product.id
+      row.draggable = true
+
+      // Add drag and drop functionality to rows
+      row.addEventListener("dragstart", function (e) {
+        e.dataTransfer.setData("text/plain", product.id)
+        this.classList.add("dragging")
+
+        // Store the original index for reordering
+        this.dataset.originalIndex = Array.from(this.parentNode.children).indexOf(this)
+      })
+
+      row.addEventListener("dragend", function () {
+        this.classList.remove("dragging")
+      })
+
+      row.addEventListener("dragover", function (e) {
+        e.preventDefault()
+        const draggingRow = document.querySelector("tr.dragging")
+        if (draggingRow && draggingRow !== this) {
+          const container = this.parentNode
+          const afterElement = getDragAfterElement(container, e.clientY)
+
+          if (afterElement) {
+            container.insertBefore(draggingRow, afterElement)
+          } else {
+            container.appendChild(draggingRow)
+          }
+        }
+      })
 
       // Add staggered animation delay
       row.style.animation = `fadeInUp 0.3s ease forwards ${index * 0.05}s`
@@ -699,12 +823,81 @@ document.addEventListener("DOMContentLoaded", () => {
       productName.className = "product-table-name"
       productName.textContent = product.name
 
-      const productValue = document.createElement("div")
-      productValue.className = "product-table-value"
-      productValue.textContent = `$${product.value}`
+      // Create editable price input with improved UX
+      const productValueContainer = document.createElement("div")
+      productValueContainer.className = "product-table-value-container"
+
+      const currencySymbol = document.createElement("span")
+      currencySymbol.className = "currency-symbol"
+      currencySymbol.textContent = "$"
+
+      const productValueInput = document.createElement("input")
+      productValueInput.type = "text"
+      productValueInput.className = "product-table-value-input"
+      productValueInput.value = product.value
+      productValueInput.dataset.productId = product.id
+      productValueInput.dataset.originalValue = product.value
+      productValueInput.title = "Click to edit price"
+      productValueInput.setAttribute("aria-label", `Edit price for ${product.name}`)
+
+      // Add event listeners for price editing with improved feedback
+      productValueInput.addEventListener("focus", function () {
+        this.select()
+        productValueContainer.classList.add("editing")
+      })
+
+      productValueInput.addEventListener("blur", function () {
+        const newValue = this.value.trim()
+        const originalValue = this.dataset.originalValue
+        productValueContainer.classList.remove("editing")
+
+        if (newValue && !isNaN(Number.parseFloat(newValue))) {
+          // Update product value
+          const productId = this.dataset.productId
+          const product = availableProducts.find((p) => p.id === productId)
+          if (product) {
+            const formattedValue = Number.parseFloat(newValue).toFixed(2)
+            product.value = formattedValue
+            this.value = formattedValue
+            this.dataset.originalValue = formattedValue
+
+            // Only show toast and animation if value actually changed
+            if (originalValue !== formattedValue) {
+              showToast(`Price updated for ${product.name}`)
+              productValueContainer.classList.add("value-updated")
+              setTimeout(() => {
+                productValueContainer.classList.remove("value-updated")
+              }, 1000)
+            }
+          }
+        } else {
+          // Revert to original value if invalid
+          this.value = this.dataset.originalValue
+          showToast("Please enter a valid price", true)
+        }
+      })
+
+      productValueInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          this.blur()
+        } else if (e.key === "Escape") {
+          this.value = this.dataset.originalValue
+          this.blur()
+        }
+      })
+
+      // Add click handler to the container to focus the input
+      productValueContainer.addEventListener("click", (e) => {
+        if (e.target !== productValueInput) {
+          productValueInput.focus()
+        }
+      })
+
+      productValueContainer.appendChild(currencySymbol)
+      productValueContainer.appendChild(productValueInput)
 
       productInfo.appendChild(productName)
-      productInfo.appendChild(productValue)
+      productInfo.appendChild(productValueContainer)
       nameCell.appendChild(productInfo)
 
       row.appendChild(nameCell)
@@ -751,6 +944,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
       tableBody.appendChild(row)
     })
+  }
+
+  // Helper function for drag and drop reordering
+  function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll("tr:not(.dragging)")]
+
+    return draggableElements.reduce(
+      (closest, child) => {
+        const box = child.getBoundingClientRect()
+        const offset = y - box.top - box.height / 2
+
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child }
+        } else {
+          return closest
+        }
+      },
+      { offset: Number.NEGATIVE_INFINITY },
+    ).element
   }
 
   // Toggle product in column with visual feedback
@@ -1125,6 +1337,127 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   }
 
+  // Initialize payment term months dropdown
+  function initializePaymentTerms() {
+    // Define available term options
+    const termOptions = [36, 48, 60, 63, 72, 75, 84]
+
+    // Find all price term elements
+    const priceTerms = document.querySelectorAll(".price-term")
+
+    priceTerms.forEach((termElement, index) => {
+      // Get the column ID from the parent elements
+      const columnCell = termElement.closest("td")
+      if (!columnCell) return
+
+      const columnPlan = columnCell.querySelector(".kanban-dropzone")?.getAttribute("data-plan")
+      if (!columnPlan) return
+
+      // Get or set default term months for this column
+      const column = columnData.find((col) => col.id === columnPlan)
+      if (!column) return
+
+      if (!column.termMonths) {
+        // Try to extract the current term from the element text
+        const currentText = termElement.textContent.trim()
+        const monthsMatch = currentText.match(/(\d+)\s+months/i)
+        column.termMonths = monthsMatch ? Number.parseInt(monthsMatch[1]) : 60 // Default to 60 months if not found
+      }
+
+      // Create dropdown container
+      const dropdownContainer = document.createElement("div")
+      dropdownContainer.className = "term-dropdown-container"
+
+      // Create dropdown label
+      const dropdownLabel = document.createElement("span")
+      dropdownLabel.className = "term-dropdown-label"
+      dropdownLabel.textContent = "for "
+
+      // Create dropdown
+      const dropdown = document.createElement("div")
+      dropdown.className = "term-dropdown"
+
+      // Create selected value display
+      const selectedValue = document.createElement("span")
+      selectedValue.className = "term-selected-value"
+      selectedValue.textContent = `${column.termMonths} months`
+      selectedValue.dataset.value = column.termMonths
+
+      // Create dropdown icon
+      const dropdownIcon = document.createElement("i")
+      dropdownIcon.className = "bi bi-chevron-down term-dropdown-icon"
+
+      // Create dropdown options container
+      const optionsContainer = document.createElement("div")
+      optionsContainer.className = "term-dropdown-options"
+
+      // Add options
+      termOptions.forEach((months) => {
+        const option = document.createElement("div")
+        option.className = "term-dropdown-option"
+        option.textContent = `${months} months`
+        option.dataset.value = months
+
+        if (months === column.termMonths) {
+          option.classList.add("selected")
+        }
+
+        option.addEventListener("click", function () {
+          // Update selected value
+          selectedValue.textContent = this.textContent
+          selectedValue.dataset.value = this.dataset.value
+
+          // Update column data
+          column.termMonths = Number.parseInt(this.dataset.value)
+
+          // Update selected option
+          optionsContainer.querySelectorAll(".term-dropdown-option").forEach((opt) => {
+            opt.classList.remove("selected")
+          })
+          this.classList.add("selected")
+
+          // Close dropdown
+          optionsContainer.classList.remove("show")
+
+          // Show toast
+          showToast(`Updated ${column.name} plan to ${this.textContent}`, false, "info-toast")
+
+          // Save to localStorage
+          try {
+            localStorage.setItem("columnData", JSON.stringify(columnData))
+          } catch (e) {
+            console.warn("Could not save term months to localStorage:", e)
+          }
+        })
+
+        optionsContainer.appendChild(option)
+      })
+
+      // Toggle dropdown on click
+      dropdown.addEventListener("click", (e) => {
+        e.stopPropagation()
+        optionsContainer.classList.toggle("show")
+      })
+
+      // Close dropdown when clicking outside
+      document.addEventListener("click", () => {
+        optionsContainer.classList.remove("show")
+      })
+
+      // Assemble dropdown
+      dropdown.appendChild(selectedValue)
+      dropdown.appendChild(dropdownIcon)
+      dropdown.appendChild(optionsContainer)
+
+      dropdownContainer.appendChild(dropdownLabel)
+      dropdownContainer.appendChild(dropdown)
+
+      // Replace the original term element content
+      termElement.innerHTML = ""
+      termElement.appendChild(dropdownContainer)
+    })
+  }
+
   // Save settings with enhanced animation and feedback
   if (saveSettingsBtn) {
     saveSettingsBtn.addEventListener("click", () => {
@@ -1208,6 +1541,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Update the menu items based on saved settings
       updateMenuItems()
+
+      // Update payment term dropdowns
+      initializePaymentTerms()
     } catch (e) {
       console.warn("Could not load saved settings:", e)
     }
@@ -1320,7 +1656,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   })
 
-  // Load saved settings
+  // Load saved settings and initialize payment terms dropdown
   loadSavedSettings()
+  initializePaymentTerms()
 })
 
