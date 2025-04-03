@@ -159,7 +159,9 @@ body {
 .product-table-value-container {
   display: flex;
   align-items: center;
-  position: relative;
+  .feature-item {
+    position: relative;
+  }
   margin-top: 4px;
   padding: 3px 6px;
   border-radius: 4px;
@@ -918,6 +920,94 @@ body {
 
 
 
+/* Feature item delete button styling */
+.feature-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding-right: 25px; /* Make room for delete button */
+}
+
+.feature-name {
+  flex: 1;
+  margin-left: 8px;
+}
+
+.feature-delete {
+  position: absolute;
+  right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+/* Show delete button on hover */
+.feature-item:hover .feature-delete {
+  opacity: 1;
+}
+
+/* Delete button hover state */
+.feature-delete:hover {
+  background-color: rgba(255, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+  transform: scale(1.1);
+}
+
+/* Animation for removing items */
+.feature-item.removing {
+  animation: removeItem 0.3s ease forwards;
+}
+
+@keyframes removeItem {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-20px);
+    height: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+}
+
+/* Plan-specific delete button colors */
+.platinum-check + .feature-name + .feature-delete:hover {
+  background-color: rgba(229, 228, 226, 0.3);
+}
+
+.gold-check + .feature-name + .feature-delete:hover {
+  background-color: rgba(212, 175, 55, 0.3);
+}
+
+.silver-check + .feature-name + .feature-delete:hover {
+  background-color: rgba(192, 192, 192, 0.3);
+}
+
+.bronze-check + .feature-name + .feature-delete:hover {
+  background-color: rgba(205, 127, 50, 0.3);
+}
+
+.iron-check + .feature-name + .feature-delete:hover {
+  background-color: rgba(128, 128, 128, 0.3);
+}
+
+
+
+
 
 
 
@@ -1583,10 +1673,10 @@ body::before {
   list-style: none;
   padding: 0;
   margin: 0;
-  overflow-y: auto;
+  /* overflow-y: auto;
   max-height: 300px; /* Increased from 250px */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  /* scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent; */ 
   position: relative;
   z-index: 1;
 }

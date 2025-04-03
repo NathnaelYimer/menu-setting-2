@@ -1556,45 +1556,89 @@ document.addEventListener("DOMContentLoaded", () => {
       // Get the feature list for this column
       const featureList = document.querySelector(`.kanban-dropzone[data-plan="${column.id}"]`)
       if (!featureList) return
-
+  
       // Clear existing items
       featureList.innerHTML = ""
-
+  
       // Add products assigned to this column
       column.products.forEach((productId) => {
         const product = availableProducts.find((p) => p.id === productId)
         if (!product) return
-
+  
         // Create new feature item
         const featureItem = document.createElement("li")
         featureItem.className = "feature-item"
         featureItem.draggable = true
         featureItem.dataset.id = productId
         featureItem.dataset.plan = column.id
-
+  
+        // Create a container for better layout control
+        const itemContainer = document.createElement("div")
+        itemContainer.className = "feature-item-container"
+  
         const featureContent = document.createElement("div")
         featureContent.className = "feature-content"
-
+  
         const checkmark = document.createElement("span")
         checkmark.className = `feature-check ${column.id}-check`
         checkmark.textContent = "✓"
-
+  
         const productName = document.createElement("span")
         productName.textContent = product.name
-
+        productName.className = "feature-name"
+  
+        // Create delete button - more visible now
+        const deleteButton = document.createElement("button")
+        deleteButton.className = "feature-delete-btn"
+        deleteButton.innerHTML = '<i class="bi bi-x-circle"></i>'
+        deleteButton.title = "Remove from this column"
+        
+        // Add delete functionality
+        deleteButton.addEventListener("click", function(e) {
+          e.stopPropagation() // Prevent triggering other click events
+          e.preventDefault() // Prevent dragging
+          
+          // Remove product from column data
+          column.products = column.products.filter(id => id !== productId)
+          
+          // Animate removal
+          featureItem.classList.add("removing")
+          
+          // Remove after animation completes
+          setTimeout(() => {
+            if (featureItem.parentNode) {
+              featureItem.parentNode.removeChild(featureItem)
+            }
+            
+            // Show toast notification
+            showToast(`Removed ${product.name} from ${column.name} plan`, false, "info-toast")
+            
+            // Save to localStorage
+            try {
+              localStorage.setItem("columnData", JSON.stringify(columnData))
+            } catch (e) {
+              console.warn("Could not save to localStorage:", e)
+            }
+          }, 300)
+        })
+  
+        // Assemble the feature item
         featureContent.appendChild(checkmark)
         featureContent.appendChild(productName)
-        featureItem.appendChild(featureContent)
-
+        
+        itemContainer.appendChild(featureContent)
+        itemContainer.appendChild(deleteButton)
+        
+        featureItem.appendChild(itemContainer)
+  
         // Add to feature list
         featureList.appendChild(featureItem)
-
+  
         // Set up drag listeners
         setupDragListeners(featureItem)
       })
     })
   }
-
   // Enhanced toast notification with types and animations
   function showToast(message, isError = false, customClass = "") {
     const toast = document.getElementById("toast")
