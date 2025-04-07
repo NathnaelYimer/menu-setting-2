@@ -90,6 +90,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Drag start event
     item.addEventListener("dragstart", function (e) {
+      // Don't start drag if we're interacting with a dropdown
+      if (document.body.classList.contains("interacting-with-dropdown")) {
+        e.preventDefault()
+        return false
+      }
+
       e.stopPropagation()
       draggedItem = this
       originalPlan = this.getAttribute("data-plan")
@@ -183,6 +189,11 @@ document.addEventListener("DOMContentLoaded", () => {
     item.addEventListener(
       "touchstart",
       function (e) {
+        // Don't start drag if we're interacting with a dropdown
+        if (document.body.classList.contains("interacting-with-dropdown")) {
+          return
+        }
+
         e.stopPropagation()
         const touch = e.targetTouches[0]
 
@@ -375,6 +386,35 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       { passive: true },
     )
+  }
+
+  // Prevent drag operations on dropdown elements
+  function preventDragOnDropdowns() {
+    const dropdowns = document.querySelectorAll(".term-dropdown, .term-dropdown-options, .term-dropdown-option")
+
+    dropdowns.forEach((dropdown) => {
+      dropdown.setAttribute("draggable", "false")
+
+      dropdown.addEventListener("mousedown", (e) => {
+        // Stop propagation to prevent the drag from starting
+        e.stopPropagation()
+
+        // Set a flag on the body to indicate we're interacting with a dropdown
+        document.body.classList.add("interacting-with-dropdown")
+
+        // Remove the flag after interaction is likely complete
+        setTimeout(() => {
+          document.body.classList.remove("interacting-with-dropdown")
+        }, 500)
+      })
+
+      // Prevent dragstart on these elements
+      dropdown.addEventListener("dragstart", (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        return false
+      })
+    })
   }
 
   // Add event listeners to all dropzones
@@ -1338,125 +1378,116 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Initialize payment term months dropdown
-  function initializePaymentTerms() {
-    // Define available term options
-    const termOptions = [36, 48, 60, 63, 72, 75, 84]
+  // Modified initializePaymentTerms function to work with existing dropdowns
+// Modified initializePaymentTerms function to work with existing dropdowns
+function initializePaymentTerms() {
+  // Define available term options
+  const termOptions = [36, 48, 60, 72, 84];
 
-    // Find all price term elements
-    const priceTerms = document.querySelectorAll(".price-term")
-
-    priceTerms.forEach((termElement, index) => {
-      // Get the column ID from the parent elements
-      const columnCell = termElement.closest("td")
-      if (!columnCell) return
-
-      const columnPlan = columnCell.querySelector(".kanban-dropzone")?.getAttribute("data-plan")
-      if (!columnPlan) return
-
-      // Get or set default term months for this column
-      const column = columnData.find((col) => col.id === columnPlan)
-      if (!column) return
-
-      if (!column.termMonths) {
-        // Try to extract the current term from the element text
-        const currentText = termElement.textContent.trim()
-        const monthsMatch = currentText.match(/(\d+)\s+months/i)
-        column.termMonths = monthsMatch ? Number.parseInt(monthsMatch[1]) : 60 // Default to 60 months if not found
+  // Find all dropdowns
+  const dropdowns = document.querySelectorAll(".term-dropdown");
+  
+  dropdowns.forEach((dropdown) => {
+    const columnPlan = dropdown.getAttribute("data-plan");
+    if (!columnPlan) return;
+    
+    // Get the column data
+    const column = columnData.find((col) => col.id === columnPlan);
+    if (!column) return;
+    
+    // Get the selected value element
+    const selectedValue = dropdown.querySelector(".term-selected-value");
+    if (!selectedValue) return;
+    
+    // Get the options container
+    const optionsContainer = dropdown.querySelector(".term-dropdown-options");
+    if (!optionsContainer) return;
+    
+    // Get current selected value
+    const currentValue = parseInt(selectedValue.dataset.value || "60");
+    
+    // Set the column term months if not already set
+    if (!column.termMonths) {
+      column.termMonths = currentValue;
+    }
+    
+    // Update the selected value to match column data
+    selectedValue.textContent = `${column.termMonths} months`;
+    selectedValue.dataset.value = column.termMonths;
+    
+    // Add click event to dropdown
+    dropdown.addEventListener("click", (e) => {
+      e.stopPropagation();
+      
+      // Set a flag on the body to indicate we're interacting with a dropdown
+      document.body.classList.add("interacting-with-dropdown");
+      
+      // Toggle the show class
+      optionsContainer.classList.toggle("show");
+      
+      // Add event listener to close dropdown when clicking outside
+      if (optionsContainer.classList.contains("show")) {
+        const closeDropdown = () => {
+          optionsContainer.classList.remove("show");
+          document.body.classList.remove("interacting-with-dropdown");
+          document.removeEventListener("click", closeDropdown);
+        };
+        
+        // Use setTimeout to avoid closing immediately due to the current click
+        setTimeout(() => {
+          document.addEventListener("click", closeDropdown);
+        }, 0);
       }
-
-      // Create dropdown container
-      const dropdownContainer = document.createElement("div")
-      dropdownContainer.className = "term-dropdown-container"
-
-      // Create dropdown label
-      const dropdownLabel = document.createElement("span")
-      dropdownLabel.className = "term-dropdown-label"
-      dropdownLabel.textContent = "for "
-
-      // Create dropdown
-      const dropdown = document.createElement("div")
-      dropdown.className = "term-dropdown"
-
-      // Create selected value display
-      const selectedValue = document.createElement("span")
-      selectedValue.className = "term-selected-value"
-      selectedValue.textContent = `${column.termMonths} months`
-      selectedValue.dataset.value = column.termMonths
-
-      // Create dropdown icon
-      const dropdownIcon = document.createElement("i")
-      dropdownIcon.className = "bi bi-chevron-down term-dropdown-icon"
-
-      // Create dropdown options container
-      const optionsContainer = document.createElement("div")
-      optionsContainer.className = "term-dropdown-options"
-
-      // Add options
-      termOptions.forEach((months) => {
-        const option = document.createElement("div")
-        option.className = "term-dropdown-option"
-        option.textContent = `${months} months`
-        option.dataset.value = months
-
-        if (months === column.termMonths) {
-          option.classList.add("selected")
+    });
+    
+    // Add click events to options
+    const options = optionsContainer.querySelectorAll(".term-dropdown-option");
+    options.forEach((option) => {
+      const months = parseInt(option.dataset.value);
+      
+      // Mark the current selected option
+      if (months === column.termMonths) {
+        option.classList.add("selected");
+      } else {
+        option.classList.remove("selected");
+      }
+      
+      // Add click event
+      option.addEventListener("click", function(e) {
+        e.stopPropagation();
+        
+        // Update selected value
+        selectedValue.textContent = this.textContent;
+        selectedValue.dataset.value = this.dataset.value;
+        
+        // Update column data
+        column.termMonths = parseInt(this.dataset.value);
+        
+        // Update selected option
+        options.forEach((opt) => {
+          opt.classList.remove("selected");
+        });
+        this.classList.add("selected");
+        
+        // Close dropdown
+        optionsContainer.classList.remove("show");
+        
+        // Show toast
+        showToast(`Updated ${column.name || columnPlan} plan to ${this.textContent}`, false, "info-toast");
+        
+        // Save to localStorage
+        try {
+          localStorage.setItem("columnData", JSON.stringify(columnData));
+        } catch (e) {
+          console.warn("Could not save term months to localStorage:", e);
         }
-
-        option.addEventListener("click", function () {
-          // Update selected value
-          selectedValue.textContent = this.textContent
-          selectedValue.dataset.value = this.dataset.value
-
-          // Update column data
-          column.termMonths = Number.parseInt(this.dataset.value)
-
-          // Update selected option
-          optionsContainer.querySelectorAll(".term-dropdown-option").forEach((opt) => {
-            opt.classList.remove("selected")
-          })
-          this.classList.add("selected")
-
-          // Close dropdown
-          optionsContainer.classList.remove("show")
-
-          // Show toast
-          showToast(`Updated ${column.name} plan to ${this.textContent}`, false, "info-toast")
-
-          // Save to localStorage
-          try {
-            localStorage.setItem("columnData", JSON.stringify(columnData))
-          } catch (e) {
-            console.warn("Could not save term months to localStorage:", e)
-          }
-        })
-
-        optionsContainer.appendChild(option)
-      })
-
-      // Toggle dropdown on click
-      dropdown.addEventListener("click", (e) => {
-        e.stopPropagation()
-        optionsContainer.classList.toggle("show")
-      })
-
-      // Close dropdown when clicking outside
-      document.addEventListener("click", () => {
-        optionsContainer.classList.remove("show")
-      })
-
-      // Assemble dropdown
-      dropdown.appendChild(selectedValue)
-      dropdown.appendChild(dropdownIcon)
-      dropdown.appendChild(optionsContainer)
-
-      dropdownContainer.appendChild(dropdownLabel)
-      dropdownContainer.appendChild(dropdown)
-
-      // Replace the original term element content
-      termElement.innerHTML = ""
-      termElement.appendChild(dropdownContainer)
-    })
-  }
+      });
+    });
+  });
+  
+  // Call preventDragOnDropdowns after initializing all dropdowns
+  preventDragOnDropdowns();
+}
 
   // Save settings with enhanced animation and feedback
   if (saveSettingsBtn) {
@@ -1556,63 +1587,63 @@ document.addEventListener("DOMContentLoaded", () => {
       // Get the feature list for this column
       const featureList = document.querySelector(`.kanban-dropzone[data-plan="${column.id}"]`)
       if (!featureList) return
-  
+
       // Clear existing items
       featureList.innerHTML = ""
-  
+
       // Add products assigned to this column
       column.products.forEach((productId) => {
         const product = availableProducts.find((p) => p.id === productId)
         if (!product) return
-  
+
         // Create new feature item
         const featureItem = document.createElement("li")
         featureItem.className = "feature-item"
         featureItem.draggable = true
         featureItem.dataset.id = productId
         featureItem.dataset.plan = column.id
-  
+
         // Create a container for better layout control
         const itemContainer = document.createElement("div")
         itemContainer.className = "feature-item-container"
-  
+
         const featureContent = document.createElement("div")
         featureContent.className = "feature-content"
-  
+
         const checkmark = document.createElement("span")
         checkmark.className = `feature-check ${column.id}-check`
         checkmark.textContent = "✓"
-  
+
         const productName = document.createElement("span")
         productName.textContent = product.name
         productName.className = "feature-name"
-  
+
         // Create delete button - more visible now
         const deleteButton = document.createElement("button")
         deleteButton.className = "feature-delete-btn"
         deleteButton.innerHTML = '<i class="bi bi-x-circle"></i>'
         deleteButton.title = "Remove from this column"
-        
+
         // Add delete functionality
-        deleteButton.addEventListener("click", function(e) {
+        deleteButton.addEventListener("click", (e) => {
           e.stopPropagation() // Prevent triggering other click events
           e.preventDefault() // Prevent dragging
-          
+
           // Remove product from column data
-          column.products = column.products.filter(id => id !== productId)
-          
+          column.products = column.products.filter((id) => id !== productId)
+
           // Animate removal
           featureItem.classList.add("removing")
-          
+
           // Remove after animation completes
           setTimeout(() => {
             if (featureItem.parentNode) {
               featureItem.parentNode.removeChild(featureItem)
             }
-            
+
             // Show toast notification
             showToast(`Removed ${product.name} from ${column.name} plan`, false, "info-toast")
-            
+
             // Save to localStorage
             try {
               localStorage.setItem("columnData", JSON.stringify(columnData))
@@ -1621,24 +1652,25 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           }, 300)
         })
-  
+
         // Assemble the feature item
         featureContent.appendChild(checkmark)
         featureContent.appendChild(productName)
-        
+
         itemContainer.appendChild(featureContent)
         itemContainer.appendChild(deleteButton)
-        
+
         featureItem.appendChild(itemContainer)
-  
+
         // Add to feature list
         featureList.appendChild(featureItem)
-  
+
         // Set up drag listeners
         setupDragListeners(featureItem)
       })
     })
   }
+  
   // Enhanced toast notification with types and animations
   function showToast(message, isError = false, customClass = "") {
     const toast = document.getElementById("toast")
@@ -1702,6 +1734,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load saved settings and initialize payment terms dropdown
   loadSavedSettings()
+  
+  // Also call these directly to ensure they run even if loadSavedSettings fails
   initializePaymentTerms()
+  preventDragOnDropdowns()
 })
-
